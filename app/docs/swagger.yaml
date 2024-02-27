@@ -106,13 +106,21 @@ definitions:
           $ref: '#/definitions/main.AddressSearch'
         type: array
     type: object
+  main.User:
+    properties:
+      login:
+        type: string
+      password:
+        type: string
+    type: object
+host: localhost:8080
 info:
   contact: {}
   description: This is a sample API for address searching and geocoding using Dadata
     API.
   termsOfService: http://localhost:8080/swagger/index.html
   title: My API
-  version: "1.0"
+  version: "1.1"
 paths:
   /address/geocode:
     post:
@@ -134,10 +142,14 @@ paths:
           schema:
             $ref: '#/definitions/main.GeocodeResponse'
         "400":
-          description: Invalid request format
+          description: Bad Request
         "500":
-          description: Dadata API error
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
       summary: Geocode an address
+      tags:
+      - geocode
   /address/search:
     post:
       consumes:
@@ -158,8 +170,61 @@ paths:
           schema:
             $ref: '#/definitions/main.SearchResponse'
         "400":
-          description: Invalid request format
+          description: Bad Request
         "500":
-          description: Dadata API error
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
       summary: Search for an address
+      tags:
+      - search
+  /login:
+    post:
+      consumes:
+      - application/json
+      operationId: loginUser
+      parameters:
+      - description: User
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/main.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: JWT token
+        "401":
+          description: Invalid credentials
+      summary: Log in a user
+      tags:
+      - SingIn
+  /register:
+    post:
+      consumes:
+      - application/json
+      operationId: registerUser
+      parameters:
+      - description: User
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/main.User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User registered successfully
+        "400":
+          description: Invalid request format
+      summary: Register a new user
+      tags:
+      - SingUp
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

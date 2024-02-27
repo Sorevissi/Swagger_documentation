@@ -18,11 +18,19 @@ const docTemplate = `{
     "paths": {
         "/address/geocode": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "geocode"
                 ],
                 "summary": "Geocode an address",
                 "operationId": "geocodeAddress",
@@ -45,21 +53,29 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid request format"
+                        "description": "Bad Request"
                     },
                     "500": {
-                        "description": "Dadata API error"
+                        "description": "Internal Server Error"
                     }
                 }
             }
         },
         "/address/search": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "search"
                 ],
                 "summary": "Search for an address",
                 "operationId": "searchAddress",
@@ -82,10 +98,78 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid request format"
+                        "description": "Bad Request"
                     },
                     "500": {
-                        "description": "Dadata API error"
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/login": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SingIn"
+                ],
+                "summary": "Log in a user",
+                "operationId": "loginUser",
+                "parameters": [
+                    {
+                        "description": "User",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "JWT token"
+                    },
+                    "401": {
+                        "description": "Invalid credentials"
+                    }
+                }
+            }
+        },
+        "/register": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SingUp"
+                ],
+                "summary": "Register a new user",
+                "operationId": "registerUser",
+                "parameters": [
+                    {
+                        "description": "User",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "User registered successfully"
+                    },
+                    "400": {
+                        "description": "Invalid request format"
                     }
                 }
             }
@@ -206,14 +290,32 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "main.User": {
+            "type": "object",
+            "properties": {
+                "login": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "1.0",
-	Host:             "",
+	Version:          "1.1",
+	Host:             "localhost:8080",
 	BasePath:         "/api",
 	Schemes:          []string{},
 	Title:            "My API",

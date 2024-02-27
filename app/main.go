@@ -174,20 +174,27 @@ type Response struct {
 }
 
 // @title My API
-// @version 1.0
+// @version 1.1
 // @description This is a sample API for address searching and geocoding using Dadata API.
+// @host localhost:8080
 // @termsOfService http://localhost:8080/swagger/index.html
 // @BasePath /api
+
+//@securityDefinitions.apikey ApiKeyAuth
+//@in header
+//@name Authorization
+
 func main() {
 	r := chi.NewRouter()
 
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
-	r.Post("/api/address/search", SearchAddressHandler)
+	r.Post("/api/register", SingUpHandler)
+	r.Post("/api/login", SingInHandler)
 
-	r.Post("/api/address/geocode", GeocodeHandler)
-
+	r.With(TokenMiddleware).Post("/api/address/search", SearchAddressHandler)
+	r.With(TokenMiddleware).Post("/api/address/geocode", GeocodeHandler)
 	r.Get("/swagger/*", httpSwagger.WrapHandler)
 
 	port := 8080
@@ -197,12 +204,14 @@ func main() {
 
 // @Summary Search for an address
 // @ID searchAddress
+// @Tags search
 // @Accept  json
 // @Produce  json
 // @Param request body SearchRequest true "Search Request"
 // @Success 200 {object} SearchResponse
-// @Failure 400 "Invalid request format"
-// @Failure 500 "Dadata API error"
+// @Failure 400
+// @Failure 500
+// @Security ApiKeyAuth
 // @Router /address/search [post]
 func SearchAddressHandler(w http.ResponseWriter, r *http.Request) {
 	var searchRequest SearchRequest
@@ -225,12 +234,14 @@ func SearchAddressHandler(w http.ResponseWriter, r *http.Request) {
 
 // @Summary Geocode an address
 // @ID geocodeAddress
+// @Tags geocode
 // @Accept  json
 // @Produce  json
 // @Param request body GeocodeRequest true "Geocode Request"
 // @Success 200 {object} GeocodeResponse
-// @Failure 400 "Invalid request format"
-// @Failure 500 "Dadata API error"
+// @Failure 400
+// @Failure 500
+// @Security ApiKeyAuth
 // @Router /address/geocode [post]
 func GeocodeHandler(w http.ResponseWriter, r *http.Request) {
 	var geocodeRequest GeocodeRequest
