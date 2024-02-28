@@ -3,14 +3,18 @@ package main
 import (
 	_ "GeoAPI/app/docs"
 	"bytes"
+	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/swaggo/http-swagger"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
 type Call interface {
@@ -197,9 +201,31 @@ func main() {
 	r.With(TokenMiddleware).Post("/api/address/geocode", GeocodeHandler)
 	r.Get("/swagger/*", httpSwagger.WrapHandler)
 
-	port := 8080
-	fmt.Printf("Server is running on :%d...\n", port)
-	http.ListenAndServe(fmt.Sprintf(":%d", port), r)
+	server := &http.Server{
+		Addr:         ":8080",
+		Handler:      r,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+	}
+
+	sigChan := make(chan os.Signal, 1)
+	defer close(sigChan)
+	signal.Notify(sigChan, syscall.SIGINT)
+
+	go func() {
+		log.Println("Starting server...")
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Server error: %v", err)
+		}
+	}()
+
+	<-sigChan
+	stopCTX, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	if err := server.Shutdown(stopCTX); err != nil {
+		log.Fatalf("Server shutdown error: %v", err)
+	}
+
 }
 
 // @Summary Search for an address
